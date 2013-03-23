@@ -21,7 +21,6 @@ About the technology
 
 For this project we used:
 - Python (2.7) - The backbone of the application, where it all happens. Literally.
-- Cherrypy - A Minimalist Python Web Framework that allows developers to build web applications in much the same way they would build any other object-oriented Python program. 
 - jQuery / jQuery UI- For dealing with the client side scripts and UI.
 
 About using it
