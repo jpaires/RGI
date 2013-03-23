@@ -1,0 +1,253 @@
+body{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px;
+	font-style: normal;
+	font-weight: normal;
+	background:#c8c8c8;	
+	color: black; 	
+}
+
+.loginBox {
+	
+}
+
+/** head section **/
+#head {
+	text-align: center;
+}
+
+.searchBox {
+	font-size:20px;
+	margin-right:-3px;
+	padding-left:5px;
+    outline:none;
+    transition: all 0.25s ease-in-out;
+    -webkit-transition: all 0.25s ease-in-out;
+    -moz-transition: all 0.25s ease-in-out;
+    
+    -webkit-border-bottom-left-radius:10px;
+    -webkit-border-top-left-radius:10px;
+    
+    -moz-border-radius-topleft:10px;
+    -moz-border-radius-bottomleft:10px;
+    
+    border:1px solid rgba(0,0,0, 0.2);
+}
+
+.searchBox:focus {
+    box-shadow: 0 0 5px #2C6997;
+    -webkit-box-shadow: 0 0 5px #2C6997; 
+    -moz-box-shadow: 0 0 5px #2C6997;
+    border:1px solid #2C6997; 
+}
+
+.retrieveButton {
+	font-family: Arial, Helvetica, sans-serif;
+	padding-left:10px;
+	padding-right:10px;
+	font-size:20px;
+	margin-left:0px;
+	-webkit-border-bottom-right-radius:10px;
+    -webkit-border-top-right-radius:10px;
+    
+    -moz-border-radius-topright:10px;
+    -moz-border-radius-bottomright:10px;	
+	border:1px solid rgba(0,0,0, 0.2);
+}
+
+.retrieveOptions {
+	padding-left:2px;
+	font-size:12px;
+	text-align: left;
+}
+
+.logout {
+	padding-left:10px;
+	padding-right:10px;
+	float:right;
+	margin-left:0px;
+	-webkit-border-radius:10px;
+    
+    -moz-border-radius:10px;	
+	border:1px solid rgba(0,0,0, 0.2);
+}
+
+/** content section **/
+
+#content {
+	margin-top: 3%;
+}
+
+#loader {
+	 margin-left: auto;   
+	 margin-right: auto;   
+	 width: 64px;	
+}
+
+#sentByList, #notSentByList {
+	margin-bottom: 20px;	
+	
+}
+
+.listMax, .listAll {
+	padding-left:10px;
+	padding-right:10px;
+	-webkit-border-radius:5px;
+    
+    -moz-border-radius:5px;	
+	border:1px solid rgba(0,0,0, 0.2);
+}
+
+
+ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	width: 150px;
+	}
+	
+ul li {
+	position: relative;
+	}
+
+li ul {
+	width: 100px;
+	position: absolute;
+	left: 140px;
+	top: 0;
+	display: none;
+	z-index: 100;
+}
+
+
+ul li {
+	display: block;
+	text-decoration: none;
+	color: #fff;
+	background: #2C6997;
+	padding-left:10px;
+	margin-top:10px;
+	text-align:left;
+	margin-right:10px;
+	-moz-border-radius: 5px; 
+	-webkit-border-radius: 5px;
+	-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+	-webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+ul li li {
+	margin-top:0px;	
+}
+
+ul {
+	padding: 0;
+	list-style: none;
+	width: 200px;
+	}
+	
+li:hover ul { 
+	display: block; 
+	text-decoration: none;
+	color: #fff;
+	background: #2C6997;
+	padding-left:0px;
+	margin-top:-10px;
+	-moz-border-radius: 5px; 
+	-webkit-border-radius: 5px;
+	-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+	-webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+li:hover { 
+	background: #fff;
+	color: #2C6997;
+}
+
+ul li li:first-child {
+	-moz-border-radius-topleft: 5px;
+	-moz-border-radius-topright: 5px;
+	
+	-webkit-border-top-left-radius:5px;	
+	-webkit-border-top-right-radius: 5px;
+}
+
+ul li li:last-child {
+	-moz-border-radius-bottomleft: 5px;
+	-moz-border-radius-bottomright: 5px;
+	
+	-webkit-border-bottom-left-radius:5px;	
+	-webkit-border-bottom-right-radius: 5px;
+}
+
+ul li li {
+	margin-left:0px;
+	width:100%;
+	-moz-border-radius:0px; 
+	-webkit-border-radius:0px;
+	-moz-box-shadow: 0 0px 0px rgba(0,0,0,0.5);
+	-webkit-box-shadow: 0 0px 0px rgba(0,0,0,0.5);
+}
+
+.resultStats {
+	font-size: 12px;
+	text-align: left;
+	margin-left:5%;
+	padding-left:10px;
+	margin-bottom: 10px;
+}
+
+.results {
+	border-left:1px solid #c0c0c0; 
+	padding-left:1%;
+	margin-left:0;
+	text-align: left;
+}
+
+
+.emailHead, .emailContent {
+	
+	padding-top:5px;
+	padding-bottom:5px;
+	border: none;
+	display: inline-block; 
+	width:80%;
+	padding-left:10px;
+	margin-left:5%;
+	color: #fff; 
+	text-decoration: none;
+	-moz-border-radius: 5px; 
+	-webkit-border-radius: 5px;
+	-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+	-webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+	/*text-shadow: 0 -1px 1px rgba(0,0,0,0.25);*/
+	border-bottom: 1px solid rgba(0,0,0,0.25);
+	position: relative;
+	cursor: pointer;
+	background: #2C6997;
+}
+
+.emailContent {
+	color: black;
+	background: white;
+}
+
+.moreResults {
+	text-align: center;
+	margin-left: 15%;
+	margin-right: 15%;
+}
+
+.pageLink {
+	display: inline-block;
+	margin-left: 4px;
+	margin-right: 4px;	
+}
+
+.pageLink:hover {
+	font-weight: bold;	
+}
+
+.pageLinkCurrent {	
+	font-size: 40px;
+	font-weight: bold;
+}

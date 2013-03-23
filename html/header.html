@@ -1,0 +1,484 @@
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>RGI - Retriever for Gmail in the Internet</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="/html/style.css" >
+    <script type="text/javascript" src="/html/jquery/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="/html/jquery/jquery-ui-1.8.5.custom.min.js"></script>
+     <script type="text/javascript" src="/html/protovis-3.2/protovis-r3.2.js"></script>
+    
+    <script type="text/javascript">
+    
+    var FIELD_PER_MAIL = 6;
+    var MAILS_PER_PAGE = 20;
+    var MAX_SENDERS = 10;
+    var SENDER_FILTER_LOGIC = "and";
+    
+    /*
+     * Array com os mails. 
+     * FIELD_PER_MAIL posições para cada mail: 1º é id, 2º o sender do mail, 2º é a data, etc
+     */
+    var mails = null;
+    
+    /* Array que mapeia um contacto de email nos indices dos mails enviados por aquele contacto 
+     * Por exemplo senders['username@mail.com'] = [0, FIELD_PER_MAIL, 3*FIELD_PER_MAIL, ...] 
+     * significa que 'username@mail.com' enviou os mails que começam em mails[0], mails[FIELD_PER_MAIL], mails[3*FIELD_PER_MAIL], mails[...]
+     *
+     */
+    var senders = null;
+    
+    /*
+     * Array que mapeia um contacto de email no nome dessa pessoa
+     * Por exemplo senders['username@mail.com'] = 'José Silva'
+     */
+    var sendersName = null; // 
+    
+    /*
+     * Array com os indices dos mails (referentes ao array 'mails') a serem apresentados depois de aplicados eventuais filtros.
+     */
+    var filteredMails = null;
+    
+    /*
+     * Array que contém os contactos de email dos senders selecionados para mostrar.
+     * Por exemplo selectedSenders = ['username@mail.com' , 'another_username@mail.com' , ...]
+     */
+    var selectedSenders = new Array();
+    
+    /*
+     * Array que contém os contactos de email dos senders selecionados para não mostrar.
+     * Por exemplo unSelectedSenders = ['username@mail.com' , 'another_username@mail.com' , ...]
+     */
+    var unSelectedSenders = new Array();
+    
+    function printPageNoResults()
+    {
+    	$(".results").empty();
+    	$("#loader").empty();
+    	$(".results").append("No emails found. Try another query.");
+    }
+    
+    function printPage(pageNum)
+    {
+    	first = (pageNum - 1) * MAILS_PER_PAGE; 
+    	last = first + MAILS_PER_PAGE; 
+    	printMails(first, last);
+    	printSenders(MAX_SENDERS)
+    	printMoreResults(pageNum);
+    }
+    
+    
+    
+    function printMails(first, last)
+    {
+    	$(".results").empty();
+    	var idsToFetch = ""
+    	for(var i=first; i < last+1 && i < filteredMails.length ;i+=1)
+		{
+    		if(mails[filteredMails[i]+4].length == 0)
+    			idsToFetch += " "+ mails[filteredMails[i]]
+		}
+    	
+    	if(idsToFetch.length > 0)
+    	{
+    		 $.ajax({
+    		     url: "fetchBody.py",
+    		     type: "POST",
+    		     async: false, // set to false so order of operations is correct
+    		     data: { idsToFetch: idsToFetch},
+    		     success: function(data){
+    		 		var temp = new Array();
+    				temp = data.split(/\'\s\'/g);
+    				temp[0] = temp[0].replace("'", "");
+    				temp[temp.length-1] = temp[temp.length-1].replace("'", "");
+    				var j = 0;
+    				for(var i=first; i < last+1 && i < filteredMails.length ;i+=1)
+    				{
+    					if(mails[filteredMails[i]+4].length == 0)
+    		    		{
+    		    			mails[filteredMails[i]+4] = temp[j];
+    		    			j+=1;
+    		    		}
+    				}
+    			}
+    		});	
+    	}
+    	
+    	
+    	for(var i=first; i < last+1 && i < filteredMails.length ;i+=1)
+		{
+    		$(".results").append(
+					"<div class=\"email\">" +
+						"<div class=\"emailHead\">" + 
+							"<b>" + mails[filteredMails[i]+1] + "</b> <small>sent mail with subject</small> <b>" + mails[filteredMails[i]+3] + "</b> at <b>"+ mails[filteredMails[i]+2] + "</b></div>" +
+						"<div class=\"emailContent\" style=\"display: none;\">" + 
+						mails[filteredMails[i]+4] + 
+							"</div>" +
+					"</div><br/>"
+			);
+		}
+		
+    }
+ 
+    function printSenders(max)
+    {
+    	$("#senders").empty();
+    	$("#senders").append("<b>Filter by senders:</b><br/>");
+
+    	if(max == -1)
+    	{
+    		$("#senders").append("<input type=\"submit\" class=\"listMax\" value=\"Collapse\" id=\"listMax\">");
+    	}
+    	
+		var j = 0;
+		var str = "<ul>";
+		for (var i in senders) 
+		{
+			
+			if(max != -1 && j >= max)
+			{
+				$("#senders").append("<input type=\"submit\" class=\"listAll\" value=\"List all\" id=\"listAll\">");
+				break;
+			}
+			
+			if(jQuery.inArray(i, selectedSenders) == -1 && jQuery.inArray(i, unSelectedSenders) == -1)
+			{
+				str += getSenderButtonsCode(i, "normal");
+				j += 1;
+			}
+			
+		}
+		$("#senders").append( str + "</ul>");
+    }
+    
+    function getSenderButtonsCode(senderMail, mode)
+    {
+    	var name = sendersName[senderMail];
+    	if(name.length > 19)
+    	{
+    		name = name.substring(0,19);
+    		name += "...";
+    	}
+    	if(mode == "normal")
+    	{
+    		return "<li>" + name +
+    		"<ul><li class=\"senderButton\" id=\"sentBy\" param=\""+ senderMail +"\">Sent by</li> <li class=\"senderButton\" id=\"notSentBy\" param=\""+ senderMail +"\">Not sent by</li></ul>" +
+    		"</li> ";
+    	}
+    	else if(mode == "removeSent")
+    	{
+    		return "<li>" + name +
+    		"<ul><li class=\"senderButton\" id=\"removeSent\" param=\""+ senderMail +"\">Remove constrain</li> </ul></li>" +
+    		"</li> ";
+    	}
+    	else if(mode == "removeUnSent")
+    	{
+    		return "<li>" + name +
+    		"<ul><li class=\"senderButton\" id=\"removeUnSent\" param=\""+ senderMail +"\">Remove constrain</li> </ul></li>" +
+    		"</li> ";
+    	}
+    	
+    }
+    
+    function printMoreResults(num)
+    {
+    	$(".moreResults").empty();
+    	var numPages = Math.ceil(filteredMails.length/MAILS_PER_PAGE)
+		for(var i = 1 ; i <= numPages ; ++i)
+		{
+			$(".moreResults").append("<div class=\"pageLink\">" +i + "</div>");
+		}
+    	
+    	$(".moreResults").children().eq(num-1).addClass("pageLinkCurrent")
+    }
+    
+    
+    function sortfunction(a, b){
+    	return (a - b);
+    }
+    
+    function computeFilteredMails()
+    {
+    	if(SENDER_FILTER_LOGIC == "and") 
+    	{
+    		filteredMails = new Array();
+    		if(selectedSenders.length > 0)
+    		{
+    			for(var sender in selectedSenders)
+    			{
+    				
+    				for(var mailIndex in senders[selectedSenders[sender]])
+    				{
+    					filteredMails.push(senders[selectedSenders[sender]][mailIndex]);
+    				}
+    			}
+    		} else if(unSelectedSenders.length > 0)
+    		{
+    			var toIgnore = new Array();
+    			for(var sender in unSelectedSenders)
+    			{
+    				toIgnore = toIgnore.concat(senders[unSelectedSenders[sender]]);
+    			}
+    			
+    			for (var i=0; i < mails.length ;i+=FIELD_PER_MAIL)
+				{
+    				if(findAndRemoveByValue(toIgnore, i))
+    				{
+    					continue;
+    				} else 
+    				{
+    					filteredMails.push(i);
+    				}
+						
+				}
+    		} else
+    		{
+    			for (var i=0; i < mails.length ;i+=FIELD_PER_MAIL)
+				{
+					filteredMails.push(i);	
+				}
+    		}
+    	} else 
+    	{
+    		//to do
+    		
+    	}
+    	filteredMails.sort(sortfunction);
+    }
+    
+    
+    function addSelectedSender(senderEmail)
+	{
+    	
+    	if(selectedSenders == null)
+    	{
+    		selectedSenders = new Array();
+    	}
+    	
+    	if(selectedSenders.length == 0)
+    	{
+    		$("#sentByList").append("<b>Sent by:</b>");
+    	}
+    	
+    	if(selectedSenders.length >= 0)
+    	{
+    		selectedSenders.push(senderEmail);
+    		computeFilteredMails();
+    	} 
+		$("#sentByList").append("<ul>" + getSenderButtonsCode(senderEmail, "removeSent") + "</ul>");
+	}
+    
+    
+    function addUnSelectedSender(senderEmail)
+	{
+    	if(unSelectedSenders == null)
+    	{
+    		unSelectedSenders = new Array();
+    	}
+    	if(unSelectedSenders.length == 0)
+    	{
+    		$("#notSentByList").append("<b>Not sent by:</b>");
+    	}
+    	
+    	if(unSelectedSenders.length >= 0)
+    	{
+    		unSelectedSenders.push(senderEmail);
+    		computeFilteredMails();
+    	} 
+    	
+		$("#notSentByList").append("<ul>" + getSenderButtonsCode(senderEmail, "removeUnSent") + "</ul>");
+	}
+    
+    function removeByValue(arr, val) {
+        for(var i=0; i<arr.length; i++) {
+            if(arr[i] == val) {
+                arr.splice(i, 1);
+                break;
+            }
+        }
+    }
+    
+    function findAndRemoveByValue(arr, val) {
+        for(var i=0; i<arr.length; i++) {
+            if(arr[i] == val) {
+                arr.splice(i, 1);
+                return true;
+            }
+        }
+    }
+    
+    function removeSelectedSender(senderEmail)
+	{
+    	removeByValue(selectedSenders,senderEmail);
+    	if(selectedSenders.length == 0)
+    	{
+    		$("#sentByList").empty();
+    	}
+    	computeFilteredMails();
+	}
+    
+    function removeUnSelectedSender(senderEmail)
+	{
+    	removeByValue(unSelectedSenders,senderEmail);
+    	if(unSelectedSenders.length == 0)
+    	{
+    		$("#notSentByList").empty();
+    	}
+    	computeFilteredMails();
+	}
+    
+    function printTimeLine()
+    {
+		
+		var idsToTimeLine = "";
+		for(var i in filteredMails)
+		{	
+			idsToTimeLine += mails[filteredMails[i]].replace(" ", "") + " ";
+		}
+        $.get("timeLine.py", { idsToTimeLine : idsToTimeLine} , 
+    			function(data)
+    			{ 
+        			var str="<script>" + data;
+        			str+="<";
+        	        str+="/script>";
+        			$(".timeLine").append(str);
+        		}
+        );
+    }
+    
+    
+    $(document).ready(function() {
+    	
+    	$(".login-form").submit(function(){
+			var $form = $(this);
+			$(this).hide();
+			$(this).parents(".form-container").append("<img src='/html/images/loader.gif' alt='Please wait' />")
+			$.ajax({
+				type: "POST",
+				url: "login.py",
+				data: $form.serialize(),
+				success: function(){
+							location.reload();
+						}
+				});
+				return false;
+		});
+    	
+    	
+    	
+    	$(".senderButton").live('click', function() {
+    		if($(this).attr("id") == "sentBy")
+    		{
+    			$(this).parent().parent().remove();
+    			addSelectedSender($(this).attr("param"));
+    			printPage(1);
+    		} else if($(this).attr("id") == "notSentBy") {
+    			$(this).parent().parent().remove();
+    			addUnSelectedSender($(this).attr("param"));
+    			printPage(1);
+    		} else if($(this).attr("id") == "removeSent")
+    		{
+    			$(this).parent().parent().remove();
+    			removeSelectedSender($(this).attr("param"));
+    			printPage(1);
+    		} else if($(this).attr("id") == "removeUnSent")
+    		{
+    			$(this).parent().parent().remove();
+    			removeUnSelectedSender($(this).attr("param"));
+    			printPage(1);
+    		}
+    	});
+    	
+    	$(".emailHead").live('click', function() { 
+    		$(this).next().slideToggle('slow');
+    		return false;
+    	});
+    	
+    	$(".pageLink").live('click', function() { 
+    		printPage(parseInt($(this).text()));
+    	});
+    	
+    	$(".listAll").live('click', function() { 
+    		printSenders(-1);
+    	});
+    	
+    	$(".listMax").live('click', function() { 
+    		printSenders(MAX_SENDERS);
+    	});
+    	
+    	
+    	$(".retrieveButton").click(function(){
+    		
+    		var TS = new Date().getTime();
+    		
+    		$(".results").empty();
+			$("#senders").empty();
+			$(".resultStats").empty();
+			$(".moreResults").empty();
+			$("#sentByList").empty();
+			$("#loader").prepend("<img src='/html/images/loader.gif' alt='Please wait' />")
+    		var query = $("#query").val();
+    		var sortedBy = jQuery('.search .retrieveOptions input:radio:checked').val();
+    		
+    		var senderWanted = $('#senderWanted').attr('checked');
+    		var subjectWanted = $('#subjectWanted').attr('checked');
+    		var bodyWanted = $('#bodyWanted').attr('checked');
+    		
+    		$.get("retrieve.py", { query: query, TS:TS, sortedBy:sortedBy,
+    								senderWanted:senderWanted, subjectWanted:subjectWanted, bodyWanted:bodyWanted} ,
+	    			function(data){
+    					var TS_proc = new Date().getTime();
+    					
+    					$(".moreResults").empty();
+    					if(data.length <= 1)
+    					{
+    						printPageNoResults();
+    						return
+    					}
+    					
+    					var TS_init = data.split(" ", 2)[0];
+    					data = data.slice(TS_init.length);
+    					var temp = new Array();
+	    				 
+	    				temp = data.split(/\'\s\'/g);
+	    				temp[0] = temp[0].replace("'", "");
+	    				temp[temp.length-1] = temp[temp.length-1].replace("'", "");
+	    				mails = temp;
+	    				filteredMails = new Array();
+	    		
+	    						
+	    				senders = new Array();
+	    				sendersName = new Array();
+	    				for (var i=0; i < mails.length ;i+=FIELD_PER_MAIL)
+	    				{
+	    					var name = mails[i+1].substring(0, mails[i+1].indexOf("<"));
+	    					var sender = null;
+	    					if(name.length == 0)
+	    					{
+	    						sender = mails[i+1].replace("<", "&#60;").replace(">", "&#62;");
+	    						name = sender;
+	    					} else {
+	    						sender = mails[i+1].substring(mails[i+1].indexOf("<")+1, mails[i+1].indexOf(">"));
+	    					}
+	    					
+	    					if(senders[sender] == null)
+	    					{
+	    						senders[sender] = new Array()
+	    						sendersName[sender] = name;
+	    					}
+	    					
+	    					senders[sender].push(i);
+	    					filteredMails.push(i);	
+	    				}
+	    				$("#loader").empty();
+	    				printPage(1);
+	    				
+	    				var TS_end = new Date().getTime();
+	    				$(".resultStats").prepend(
+		    					"Found <b>" + temp.length/FIELD_PER_MAIL + " results</b> in " + (TS_end - TS_init)/1000 + " seconds (" + (TS_proc - TS_init)/1000 + " seconds processing)"
+		    			);
+	    		});
+		});
+
+    	
+    });
+    </script>
+</head>

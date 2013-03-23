@@ -1,0 +1,54 @@
+<body>
+
+	<div id="head">
+		<form method="post" action="logout.py">
+			<input type="submit" class="logout" value="Logout" />
+		</form>
+		
+		<table border="0" >
+			<tr>
+				<td valign="top" >
+					<img src="/html/images/logo.png" alt="logo" />
+				</td>
+				
+				<td valign="middle" align="center">
+					<div class="search">
+						<input type="text" name="query" class="searchBox" id="query" size="40"/> <button type="button" class="retrieveButton">Retrieve</button> <br/>
+						<div class="retrieveOptions">
+							Sorted by:<input type="radio" name="sortedBy" value="time"> Time <input type="radio" name="sortedBy" value="relevanceOTF"> Relevance (on the fly) <input type="radio" name="sortedBy" value="relevance" checked> Relevance<br>
+							Lookup in:<input type="checkbox" name="lookupIn" checked="yes" value="sender" id="senderWanted"/>Sender <input type="checkbox" name="lookupIn" checked="yes" value="subject" id="subjectWanted"/>Subject <input type="checkbox" name="lookupIn" checked="yes" value="body" id="bodyWanted"/>Body
+						</div>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<div id="loader"></div>
+	
+	<div id="content">
+		<table border="0" >
+			
+		
+			<tr>
+				<td valign="top" >
+					<div id="filters">
+						<div id="senderFilters">
+							<div id="sentByList"></div>
+							<div id="notSentByList"></div>
+							<div id="senders"></div>
+						</div>
+					
+					</div>
+				</td>
+				
+				<td valign="top" align="center" width="100%">
+					<div class="resultStats"></div>
+					<div class="results"></div>
+				</td>
+			</tr>
+		</table>
+		
+		<div class="moreResults"></div>
+	</div>
+</body>
